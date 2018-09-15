@@ -9,13 +9,23 @@ def welcome_here():
 
 @app.route('/result', methods = ['POST','GET'])
 def giveResult():
-	if request.method == 'POST':
-		statement = request.form['statement']
-		print(statement)
-		result = predict(statement)
-		return jsonify({'class' : result}), 200
-	else:
-		return jsonify({'Response' : 'No other request except POST requests are accepted on this server'}), 404
+	try:
+		if request.is_json:
+			content = request.get_json()
+		else:
+			raise Exception('Json','Json not found in body')
+		if request.method == 'POST':
+			if 'review' not in content or content['review'] is None:
+				raise Exception('review', 'Review not found in POST request')
+			else:
+				review = request.form['review']
+			    predicted_class = mlModule.predict(review)
+			    result = jsonify({'class' : predicted_class}), 200
+		else:
+			result = jsonify({'Response' : 'No other request except POST requests are accepted on this server'}), 404
+	except Exception as e:
+		raise e
+	return result
 		
 if __name__ == '__main__':
 	app.run(debug = True)
