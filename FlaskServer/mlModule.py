@@ -5,6 +5,9 @@ from keras.models import model_from_json
 from sklearn.model_selection import train_test_split
 from keras.preprocessing.sequence import pad_sequences
 import pickle
+import re
+from keras.preprocessing.text import Tokenizer
+from keras.models import load_model
 
 def preprocessing():
 	df = f.fetch_data()
@@ -33,26 +36,22 @@ def testing(model, X_test, Y_test, batch_size):
 	score,acc = model.evaluate(X_test, Y_test, verbose = 2, batch_size = batch_size)
 	return score
 	
-def preprocess_user_review(review):
+def preprocess_user_review(review, tokenizer):
+	print(review)
 	review = np.array([review])
 	review = np.char.lower(review)
 	remove_unwanted_characters = lambda x: re.sub('[^a-zA-Z0-9\s]','',x)
 	func = np.vectorize(remove_unwanted_characters)
 	review = func(review)
-	filehandler = open('data/tokenizer.obj','rb')
-	tokenizer = pickle.load(filehandler)
-	filehandler.close()
-	review_processed = tokenizer.text_to_sequences(review)
+	review_processed = tokenizer.texts_to_sequences(review)
 	review_processed_padded = pad_sequences(review_processed, maxlen = 50)
 	return review_processed_padded
-	
-def predict(review):
-	review = preprocess_user_review(review)
-	model_json_file_name = "model/model.json"
-	model_weight_file_name = "model/model_weights.h5"
-	model = load_model(model_json_file_name, model_weight_file_name)
-	predicted_class = model.predict(review)
-	return predicted_class
+
+
+def predict(review, model, tokenizer):
+	review = preprocess_user_review(review, tokenizer)
+	predicted_class = model.predict_classes(review)
+	return predicted_class[0]
 
 def save_model(model, model_json_file_name, model_weight_file_name):
 	model_json = model.to_json()
@@ -62,8 +61,13 @@ def save_model(model, model_json_file_name, model_weight_file_name):
 	model.save_weights(model_weight_file_name)
 	return
 
+def save_model2(model, model_file_name):
+	model.save(model_file_name)
+	return
+
+
 def load_model(model_json_file_name, model_weight_file_name):
-	json_file = open(model_json_name, 'r')
+	json_file = open(model_json_file_name, 'r')
 	loaded_model_json = json_file.read()
 	json_file.close()
 	loaded_model = model_from_json(loaded_model_json)

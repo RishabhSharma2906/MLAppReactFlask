@@ -12,6 +12,8 @@ class Setup:
 		print(testing_score)
 		model_json_file_name =  "model/model.json"
 		model_weight_file_name = "model/model_weights.h5"
-		ml.save_model(built_model, model_json_file_name, model_weight_file_name)
+		model_file_name = "model/first_model.h5"
+		#ml.save_model(built_model, model_json_file_name, model_weight_file_name)
+		ml.save_model2(built_model, model_file_name)
 
 setup_object = Setup()
